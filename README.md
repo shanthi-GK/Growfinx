@@ -1,2 +1,0 @@
-# Growfinx
-Intership 
