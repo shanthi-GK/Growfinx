@@ -1,0 +1,93 @@
+Pacu (session) > run iam__enum_permissions
+Pacu (session) > run s3__bucket_finder
+Pacu (session) > run s3__download_bucket
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::cinematic-assets-prod/*"
+    }
+  ]
+}
+aws s3api put-public-access-block \
+  --bucket cinematic-assets-prod \
+  --public-access-block-configuration \
+  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontOAIRead",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E1EXAMPLEOAI"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::cinematic-assets-prod/*"
+    },
+    {
+      "Sid": "AllowMediaTeamUpload",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789012:role/MediaUploadRole"
+      },
+      "Action": ["s3:PutObject", "s3:PutObjectAcl"],
+      "Resource": "arn:aws:s3:::cinematic-assets-prod/*",
+      "Condition": {
+        "StringEquals": { "s3:x-amz-acl": "private" }
+      }
+    },
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::cinematic-assets-prod",
+        "arn:aws:s3:::cinematic-assets-prod/*"
+      ],
+      "Condition": {
+        "Bool": { "aws:SecureTransport": "false" }
+      }
+    },
+    {
+      "Sid": "DenyUnEncryptedObjectUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::cinematic-assets-prod/*",
+      "Condition": {
+        "StringNotEquals": { "s3:x-amz-server-side-encryption": "AES256" }
+      }
+    }
+  ]
+}
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListSpecificPrefixOnly",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::cinematic-assets-prod",
+      "Condition": {
+        "StringLike": { "s3:prefix": "renders/final-cuts/*" }
+      }
+    },
+    {
+      "Sid": "GetObjectsInPrefix",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::cinematic-assets-prod/renders/final-cuts/*"
+    }
+  ]
+}
+aws s3api get-bucket-policy-status --bucket cinematic-assets-prod
+# Should return: "IsPublic": false
+
+aws s3api get-public-access-block --bucket cinematic-assets-prod
+# All four settings should be true
