@@ -1,0 +1,51 @@
+aws s3 ls
+aws s3api get-bucket-acl --bucket animation-assets
+aws s3api get-public-access-block --bucket animation-assets
+aws s3api get-bucket-policy --bucket animation-assets
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBucketList",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::animation-assets"
+    },
+    {
+      "Sid": "AllowObjectAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::animation-assets/*"
+    }
+  ]
+}
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyPublicRead",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::animation-assets/*",
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    }
+  ]
+}
+aws s3api put-public-access-block \
+--bucket animation-assets \
+--public-access-block-configuration \
+BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+aws s3 cp trailer.mp4 s3://animation-assets/
+AccessDenied
+aws sts get-caller-identity
