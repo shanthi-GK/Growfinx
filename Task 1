@@ -1,0 +1,154 @@
+npm install dompurify axiosimport { useState } from "react";
+import axios from "axios";
+
+export default function ChangePassword() {
+const [form, setForm] = useState({
+currentPassword: "",
+newPassword: "",
+confirmPassword: ""
+});
+
+const csrfToken = document
+.querySelector('meta[name="csrf-token"]')
+?.getAttribute("content");
+
+const handleChange = (e) => {
+setForm({
+...form,
+[e.target.name]: e.target.value
+});
+};
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+
+if (form.newPassword !== form.confirmPassword) {
+  alert("Passwords do not match");
+  return;
+}
+
+try {
+  await axios.post(
+    "http://localhost:5000/api/change-password",
+    form,
+    {
+      headers: {
+        "X-CSRF-Token": csrfToken
+      }
+    }
+  );
+
+  alert("Password changed successfully.");
+} catch (err) {
+  alert("Error changing password.");
+}
+};
+
+return (
+
+
+
+Change Password
+  <form onSubmit={handleSubmit}>
+
+    <input
+      type="password"
+      name="currentPassword"
+      placeholder="Current Password"
+      onChange={handleChange}
+      className="border w-full p-2 mb-3"
+    />
+
+    <input
+      type="password"
+      name="newPassword"
+      placeholder="New Password"
+      onChange={handleChange}
+      className="border w-full p-2 mb-3"
+    />
+
+    <input
+      type="password"
+      name="confirmPassword"
+      placeholder="Confirm Password"
+      onChange={handleChange}
+      className="border w-full p-2 mb-3"
+    />
+
+    <button
+      className="bg-blue-600 text-white w-full p-2 rounded"
+    >
+      Update Password
+    </button>
+
+  </form>
+</div>
+);
+}import { useState } from "react";
+import DOMPurify from "dompurify";
+
+export default function UserProfile() {
+
+const [bio, setBio] = useState("");
+
+const cleanBio = DOMPurify.sanitize(bio);
+
+return (
+
+<div className="max-w-lg mx-auto mt-8 p-6 bg-white rounded shadow">
+
+  <h2 className="text-2xl font-bold mb-4">
+    User Profile
+  </h2>
+
+  <textarea
+    className="border w-full p-2"
+    rows="5"
+    placeholder="Write about yourself..."
+    onChange={(e) => setBio(e.target.value)}
+  />
+
+  <h3 className="font-semibold mt-5">
+    Preview
+  </h3>
+
+  <div
+    className="border p-3 mt-2"
+    dangerouslySetInnerHTML={{
+      __html: cleanBio
+    }}
+  />
+
+</div>
+);
+}const express = require("express");
+const csrf = require("csurf");
+
+const app = express();
+
+app.use(express.json());
+
+const csrfProtection = csrf({
+cookie: true
+});
+
+app.post(
+"/api/change-password",
+csrfProtection,
+(req, res) => {
+
+    const {
+        currentPassword,
+        newPassword
+    } = req.body;
+
+    // Verify current password
+    // Hash new password using bcrypt
+    // Save to database
+
+    res.json({
+        message: "Password Updated"
+    });
+
+}
+);npm install express csurf cookie-parser bcrypt
