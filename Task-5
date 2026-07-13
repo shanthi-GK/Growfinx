@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cyber Security Demo</title>
+</head>
+<body>
+
+<h2>Login Form</h2>
+
+<form method="POST" action="">
+    Username:
+    <input type="text" name="username"><br><br>
+
+    Password:
+    <input type="password" name="password"><br><br>
+
+    <input type="submit" value="Login">
+</form>
+
+<?php
+if(isset($_POST['username'])){
+
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    echo "<h3>Welcome ".$username."</h3>";
+}
+?>
+
+</body>
+</html>
+sudo apt update
+sudo apt install libapache2-mod-security2 -y
+sudo a2enmod security2
+sudo systemctl restart apache2
+sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+sudo nano /etc/modsecurity/modsecurity.conf
+SecRuleEngine DetectionOnly
+sudo nano /etc/modsecurity/custom.conf
+SecRule ARGS "@rx (?i:(union|select|insert|delete|drop|update|or 1=1))" \
+"id:1001,\
+phase:2,\
+deny,\
+status:403,\
+msg:'SQL Injection Detected'"
+SecRule ARGS "@rx (?i:<script|javascript:|onerror=|onload=)" \
+"id:1002,\
+phase:2,\
+deny,\
+status:403,\
+msg:'XSS Attack Detected'"
+SecAction \
+"id:1003,\
+phase:1,\
+initcol:ip=%{REMOTE_ADDR},\
+pass"
+
+SecRule IP:REQUESTS "@gt 50" \
+"id:1004,\
+deny,\
+status:429,\
+msg:'Too Many Requests'"
+sudo systemctl restart apache2
+(http.request.uri contains "/login")
+URI: /login
+(ip.geoip.country eq "CN")
+' OR 1=1 --
+403 Forbidden
+ab -n 100 -c 10 http://YOUR_SERVER_IP/
+curl http://YOUR_SERVER_IP/
