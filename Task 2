@@ -1,0 +1,43 @@
+// Node.js + Express
+
+app.get("/api/enquiries/:id", async (req, res) => {
+const enquiry = await Enquiry.findById(req.params.id);
+res.json(enquiry);
+});app.get("/api/enquiries/:id", async (req, res) => {
+const userId = req.user.id; // Obtained after authentication
+
+const enquiry = await Enquiry.findOne({
+    _id: req.params.id,
+    userId: userId
+});
+
+if (!enquiry) {
+    return res.status(403).json({
+        message: "Access Denied"
+    });
+}
+
+res.json(enquiry);
+});const jwt = require("jsonwebtoken");
+
+function authenticate(req, res, next) {
+const token = req.headers.authorization?.split(" ")[1];
+
+if (!token) {
+    return res.status(401).json({
+        message: "Unauthorized"
+    });
+}
+
+try {
+    const decoded = jwt.verify(token, "secretKey");
+    req.user = decoded;
+    next();
+} catch {
+    return res.status(401).json({
+        message: "Invalid Token"
+    });
+}
+}app.get("/api/enquiries/:id", authenticate, async (req, res) => {
+// Authorization check here
+});
